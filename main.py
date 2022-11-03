@@ -16,7 +16,7 @@ from database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(root_path="/api/")
 router = APIRouter()
 
 SECRET_KEY="d01e3f9110d397d00cb5ffc2cd498180a16c3999191a032ef404424daec9ada4"
