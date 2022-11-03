@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime, timedelta
 
 import uvicorn
-from fastapi import FastAPI, Depends, HTTPException, status, APIRouter
+from fastapi import FastAPI, Depends, HTTPException, status, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
@@ -134,9 +134,10 @@ async def create_schedule(schedule: schemas.ScheduleCreate, db: Session = Depend
     schedule.Owner = current_user.UUID
     return crud.create_schedule(db=db, schedule=schedule)
 
-@app.post("/schedule/delete", response_model=schemas.Schedule)
-async def delete_schedule(schedule: schemas.ScheduleDelete, db: Session = Depends(get_db)):
-    schedule_id = schedule.UUID
+@app.post("/schedule/delete")
+async def delete_schedule(rq: Request, db: Session = Depends(get_db)):
+    rq_body = await rq.json()
+    schedule_id = rq_body.get("UUID")
     return crud.delete_schedule(db=db, schedule_id=schedule_id)
 
 @app.get("/schedule", response_model=schemas.Schedule)
