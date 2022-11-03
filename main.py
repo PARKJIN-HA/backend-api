@@ -1,4 +1,5 @@
 import re
+import uuid
 from datetime import datetime, timedelta
 
 import uvicorn
@@ -129,6 +130,7 @@ async def register_user(user: schemas.UserCreate, db: Session = Depends(get_db))
 
 @app.post("/schedule/create", response_model=schemas.Schedule)
 async def create_schedule(schedule: schemas.ScheduleCreate, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
+    schedule.UUID = uuid.uuid4()
     schedule.Owner = current_user.UUID
     return crud.create_schedule(db=db, schedule=schedule)
 
