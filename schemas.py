@@ -68,7 +68,7 @@ class ScheduleCreate(ScheduleBase):
     pass
 
 class ScheduleDelete(ScheduleBase):
-    pass
+    UUID: str
 
 class Schedule(ScheduleBase):
     Ends: datetime.datetime | None = None
