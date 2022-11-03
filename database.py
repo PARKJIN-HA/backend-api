@@ -8,10 +8,11 @@ import os
 # load .env
 load_dotenv()
 
-id = os.environ.get('MARIADB_ID')
+id = os.environ.get("MARIADB_ID")
 pw = os.environ.get("MARIADB_PASSWORD")
+host = os.environ.get("MARIADB_HOST")
 
-SQLALCHEMY_DATABASE_URL = f"mariadb+pymysql://{id}:{pw}@localhost:3306/network_project"
+SQLALCHEMY_DATABASE_URL = f"mariadb+pymysql://{id}:{pw}@{host}:3306/network_project"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
