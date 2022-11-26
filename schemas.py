@@ -9,7 +9,7 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    username: str | None = None
+    username: str = None
 
 
 class TodoBase(BaseModel):
@@ -21,8 +21,8 @@ class TodoCreate(TodoBase):
 
 class Todo(TodoBase):
     Details: int
-    TodoCheck: bool | None = None
-    TodoList: str | None = None
+    TodoCheck: bool = None
+    TodoList: str = None
 
     class Config:
         orm_mode = True
@@ -71,8 +71,8 @@ class ScheduleDelete(ScheduleBase):
     UUID: str
 
 class Schedule(ScheduleBase):
-    Ends: datetime.datetime | None = None
-    Members : list[User] | None = None
+    Ends: datetime.datetime = None
+    Members : list[User] = None
 
     class Config:
         orm_mode = True
