@@ -17,20 +17,24 @@ from database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
+# route path
 app = FastAPI(root_path="/api/")
 router = APIRouter()
 
-SECRET_KEY="d01e3f9110d397d00cb5ffc2cd498180a16c3999191a032ef404424daec9ada4"
-ALGORITHM="HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+# Need to password hash
+SECRET_KEY = "d01e3f9110d397d00cb5ffc2cd498180a16c3999191a032ef404424daec9ada4"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
+# CORS setting
 origins = [
     "http://localhost",
     "http://localhost:3001",
     "http://localhost:8000",
+    "http://qq0201.iptime.org"
 ]
 
 app.add_middleware(
@@ -41,6 +45,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -48,11 +53,14 @@ def get_db():
     finally:
         db.close()
 
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password):
     return pwd_context.hash(password)
+
 
 def authenticate_user(db, id: str, password: str):
     if re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", id):
@@ -67,6 +75,7 @@ def authenticate_user(db, id: str, password: str):
 
     return user
 
+
 def create_access_token(data: dict, expires_delta=None):
     to_encode = data.copy()
 
@@ -79,6 +88,7 @@ def create_access_token(data: dict, expires_delta=None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
     return encoded_jwt
+
 
 @app.post("/login", response_model=schemas.Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
@@ -94,6 +104,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user.Email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "Bearer"}
+
 
 @app.get("/users/me/", response_model=schemas.User)
 def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
@@ -121,6 +132,7 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
         )
     return user
 
+
 @app.post("/register", response_model=schemas.User)
 async def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=user.Email)
@@ -128,11 +140,14 @@ async def register_user(user: schemas.UserCreate, db: Session = Depends(get_db))
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db=db, user=user)
 
+
 @app.post("/schedule/create", response_model=schemas.Schedule)
-async def create_schedule(schedule: schemas.ScheduleCreate, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
+async def create_schedule(schedule: schemas.ScheduleCreate, db: Session = Depends(get_db),
+                          current_user: schemas.User = Depends(get_current_user)):
     schedule.UUID = uuid.uuid4()
     schedule.Owner = current_user.UUID
     return crud.create_schedule(db=db, schedule=schedule)
+
 
 @app.post("/schedule/delete")
 async def delete_schedule(rq: Request, db: Session = Depends(get_db)):
@@ -140,14 +155,10 @@ async def delete_schedule(rq: Request, db: Session = Depends(get_db)):
     schedule_id = rq_body.get("UUID")
     return crud.delete_schedule(db=db, schedule_id=schedule_id)
 
-@app.get("/schedule", response_model=schemas.Schedule)
+
+@app.get("/schedules", response_model=schemas.Schedule)
 async def get_schedules(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
-    return crud.get_schedules(db=db)
-
-@app.get("/schedule/{user_id}", response_model=schemas.Schedule)
-async def get_schedule_by_member(user_id: str, db: Session = Depends(get_db)):
-
-    return crud.get_schedule_by_member(db=db, member=user_id)
+    return crud.get_schedules(db=db, user_id=current_user.UUID)
 
 
 if __name__ == "__main__":
