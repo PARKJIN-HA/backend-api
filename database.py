@@ -8,7 +8,7 @@ import os
 # load .env
 load_dotenv()
 
-id = os.environ.get("MARIADB_ID")
+id = os.environ.get("MARIADB_USER")
 pw = os.environ.get("MARIADB_PASSWORD")
 host = os.environ.get("MARIADB_HOST")
 

@@ -1,5 +1,3 @@
-import uuid
-
 from sqlalchemy.orm import Session
 
 import models
@@ -7,7 +5,7 @@ import schemas
 
 
 def create_user(db: Session, user: schemas.UserCreate):
-    db_user = models.User(UUID=uuid.uuid4(), Email=user.Email, PW=user.PW, Name=user.Name)
+    db_user = models.User(**user.dict())
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -35,6 +33,23 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
+def create_database(db: Session, database: schemas.CalendarDatabaseCreate):
+    db_database = models.CalendarDatabase(**database.dict())
+    db.add(db_database)
+    db.commit()
+    db.refresh(db_database)
+    return db_database
+
+
+def delete_database(db: Session, database_id: str):
+    db.query(models.CalendarDatabase).filter(models.CalendarDatabase.UUID == database_id).delete()
+    db.commit()
+
+
+def get_databases(db: Session, owner_id: str):
+    return db.query(models.CalendarDatabase).filter(models.CalendarDatabase.Owner == owner_id).all()
+
+
 def create_schedule(db: Session, schedule: schemas.ScheduleCreate):
     db_schedule = models.Schedule(**schedule.dict())
     db.add(db_schedule)
@@ -48,8 +63,8 @@ def delete_schedule(db: Session, schedule_id: str):
     db.commit()
 
 
-def get_schedules(db: Session, user_id: str, skip: int = 0, limit: int = 100):
-    return db.query(models.Schedule).filter(models.Schedule.Owner == user_id).offset(skip).limit(limit).all()
+def get_schedules(db: Session, user_id: str):
+    return db.query(models.Schedule).filter(models.Schedule.Owner == user_id).all()
 
 
 # def get_schedules(db: Session, schedule_id: str):
@@ -57,7 +72,7 @@ def get_schedules(db: Session, user_id: str, skip: int = 0, limit: int = 100):
 
 
 def create_details(db: Session, details: schemas.DetailsCreate):
-    db_details = models.Details(**details.dict())
+    db_details = models.Detail(**details.dict())
     db.add(db_details)
     db.commit()
     db.refresh(db_details)
@@ -65,20 +80,20 @@ def create_details(db: Session, details: schemas.DetailsCreate):
 
 
 def delete_details(db: Session, details_id: str):
-    db.query(models.Details).filter(models.Details.UUID == details_id).delete()
+    db.query(models.Detail).filter(models.Detail.UUID == details_id).delete()
     db.commit()
 
 
 def get_details(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Details).offset(skip).limit(limit).all()
+    return db.query(models.Detail).offset(skip).limit(limit).all()
 
 
 def get_details_by_schedule_id(db: Session, schedule_id: str):
-    return db.query(models.Details).filter(models.Details.ScheduleUUID == schedule_id).all()
+    return db.query(models.Detail).filter(models.Detail.ScheduleUUID == schedule_id).all()
 
 
 def create_schedule_details(db: Session, schedule_id: str, details_id: str):
-    db_details = models.Details(UUID=details_id, ScheduleUUID=schedule_id)
+    db_details = models.Detail(UUID=details_id, ScheduleUUID=schedule_id)
     db.add(db_details)
     db.commit()
     db.refresh(db_details)
@@ -86,7 +101,7 @@ def create_schedule_details(db: Session, schedule_id: str, details_id: str):
 
 
 def delete_details_by_schedule_id(db: Session, schedule_id: str):
-    db.query(models.Details).filter(models.Details.ScheduleUUID == schedule_id).delete()
+    db.query(models.Detail).filter(models.Detail.ScheduleUUID == schedule_id).delete()
     db.commit()
 
 

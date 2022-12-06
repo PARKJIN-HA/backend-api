@@ -39,7 +39,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -114,12 +114,12 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
         token_data = schemas.TokenData(username=username)
-    except JWTError:
+    except JWTError as e:
         raise credentials_exception
 
     user = crud.get_user_by_email(db, email=token_data.username)
@@ -138,7 +138,21 @@ async def register_user(user: schemas.UserCreate, db: Session = Depends(get_db))
     db_user = crud.get_user_by_email(db, email=user.Email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
+    user.UUID = uuid.uuid4()
     return crud.create_user(db=db, user=user)
+
+
+@app.post("/database/create", response_model=schemas.CalendarDatabase)
+async def create_database(database: schemas.CalendarDatabaseCreate, db: Session = Depends(get_db),
+                          current_user: schemas.User = Depends(get_current_user)):
+    database.UUID = uuid.uuid4()
+    database.Owner = current_user.UUID
+    return crud.create_database(db=db, database=database)
+
+
+@app.get("/database", response_model=schemas.CalendarDatabase)
+async def get_databases(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
+    return crud.get_databases(db=db, owner_id=current_user.UUID)
 
 
 @app.post("/schedule/create", response_model=schemas.Schedule)
@@ -156,7 +170,7 @@ async def delete_schedule(rq: Request, db: Session = Depends(get_db)):
     return crud.delete_schedule(db=db, schedule_id=schedule_id)
 
 
-@app.get("/schedules", response_model=schemas.Schedule)
+@app.get("/schedule", response_model=schemas.Schedule)
 async def get_schedules(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return crud.get_schedules(db=db, user_id=current_user.UUID)
 
