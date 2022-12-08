@@ -1,14 +1,17 @@
 import re
+import logging
 import uuid
 from datetime import datetime, timedelta
 
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, status, APIRouter, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from starlette.responses import JSONResponse
 
 import crud
 import models
@@ -44,6 +47,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+logger = logging.getLogger(__name__)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    exc_str = f'{exc}'.replace('\n', ' ').replace('   ', ' ')
+    # or logger.error(f'{exc}')
+    logger.error(request, exc_str)
+    content = {'status_code': 10422, 'message': exc_str, 'data': None}
+    return JSONResponse(content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 def get_db():
@@ -142,15 +156,16 @@ async def register_user(user: schemas.UserCreate, db: Session = Depends(get_db))
     return crud.create_user(db=db, user=user)
 
 
-@app.post("/database/create", response_model=schemas.CalendarDatabase)
+@app.post("/database/create", response_model=schemas.CalendarDatabaseCreate)
 async def create_database(database: schemas.CalendarDatabaseCreate, db: Session = Depends(get_db),
                           current_user: schemas.User = Depends(get_current_user)):
     database.UUID = uuid.uuid4()
+    database.DatabaseName = database.DatabaseName.replace(' ', '_')
     database.Owner = current_user.UUID
     return crud.create_database(db=db, database=database)
 
 
-@app.get("/database", response_model=schemas.CalendarDatabase)
+@app.get("/database")
 async def get_databases(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return crud.get_databases(db=db, owner_id=current_user.UUID)
 
@@ -170,7 +185,7 @@ async def delete_schedule(rq: Request, db: Session = Depends(get_db)):
     return crud.delete_schedule(db=db, schedule_id=schedule_id)
 
 
-@app.get("/schedule", response_model=schemas.Schedule)
+@app.get("/schedule")
 async def get_schedules(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return crud.get_schedules(db=db, user_id=current_user.UUID)
 

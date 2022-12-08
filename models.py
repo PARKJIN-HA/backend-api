@@ -12,8 +12,8 @@ class User(Base):
     PW = Column(String)
     Email = Column(String)
 
-    schedule = relationship("Schedule", back_populates="user")
-    database = relationship("CalendarDatabase", back_populates="user")
+    CalendarDatabase = relationship("CalendarDatabase")
+    Schedule = relationship("Schedule")
 
 
 class CalendarDatabase(Base):
@@ -24,8 +24,7 @@ class CalendarDatabase(Base):
     Members = Column(String(1000))
     Owner = Column(String(36), ForeignKey("Users.UUID"))
 
-    user = relationship("User", back_populates="database")
-    schedule = relationship("Schedule", back_populates="database")
+    Schedule = relationship("Schedule")
 
 
 class Schedule(Base):
@@ -39,10 +38,7 @@ class Schedule(Base):
     Starts = Column(DateTime)
     Ends = Column(DateTime)
 
-    user = relationship("User", back_populates="schedule", uselist=False)
-    database = relationship("CalendarDatabase", back_populates="schedule", uselist=False)
-    detail = relationship("Detail", back_populates="schedule", uselist=False)
-    todo = relationship("Todo", back_populates="schedule", uselist=False)
+    Detail = relationship("Detail")
 
 
 class Detail(Base):
@@ -54,8 +50,6 @@ class Detail(Base):
     CreatedAt = Column(DateTime)
     UpdatedAt = Column(DateTime)
 
-    schedule = relationship("Schedule", back_populates="detail", uselist=False)
-
 
 class Todo(Base):
     __tablename__ = "Todo"
@@ -65,4 +59,3 @@ class Todo(Base):
     TodoCheck = Column(Boolean)
     TodoContext = Column(String)
 
-    schedule = relationship("Schedule", back_populates="todo", uselist=False)

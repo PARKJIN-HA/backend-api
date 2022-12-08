@@ -14,6 +14,9 @@ class TokenData(BaseModel):
 
 
 class TodoBase(BaseModel):
+    class Config:
+        orm_mode = True
+
     UUID: str
     Details: int
 
@@ -27,11 +30,11 @@ class Todo(TodoBase):
     TodoCheck: bool = None
     TodoList: str = None
 
+
+class DetailsBase(BaseModel):
     class Config:
         orm_mode = True
 
-
-class DetailsBase(BaseModel):
     UUID: str
     ScheduleUUID: str
     CreatedAt: datetime.datetime
@@ -45,11 +48,11 @@ class DetailsCreate(DetailsBase):
 class Details(DetailsBase):
     Memo: str
 
+
+class UserBase(BaseModel):
     class Config:
         orm_mode = True
 
-
-class UserBase(BaseModel):
     Name: str
     Email: str
     UUID: str = uuid.uuid4()
@@ -60,17 +63,7 @@ class UserCreate(UserBase):
 
 
 class User(UserBase):
-    class Config:
-        orm_mode = True
-
-
-# CREATE TABLE IF NOT EXISTS CalendarDatabase(
-#     UUID VARCHAR(36) NOT NULL DEFAULT (uuid()) PRIMARY KEY,
-# DatabaseName VARCHAR(1000) NOT NULL,
-# Members VARCHAR(1000),
-# Owner VARCHAR(36) NOT NULL,
-# Foreign Key (Owner) REFERENCES Users (UUID) ON DELETE CASCADE
-# );
+    pass
 
 
 class CalendarDatabaseBase(BaseModel):
@@ -78,6 +71,9 @@ class CalendarDatabaseBase(BaseModel):
     DatabaseName: str = None
     Members: str = None
     Owner: str = None
+
+    class Config:
+        orm_mode = True
 
 
 class CalendarDatabaseCreate(CalendarDatabaseBase):
@@ -91,11 +87,13 @@ class CalendarDatabaseDelete(CalendarDatabaseBase):
 
 
 class CalendarDatabase(CalendarDatabaseBase):
-    class Config:
-        orm_mode = True
+    pass
 
 
 class ScheduleBase(BaseModel):
+    class Config:
+        orm_mode = True
+
     UUID: str = None
     ScheduleName: str = None
     Owner: str = None
@@ -118,6 +116,3 @@ class ScheduleDelete(ScheduleBase):
 class Schedule(ScheduleBase):
     Ends: datetime.datetime = None
     Members: list[User] = None
-
-    class Config:
-        orm_mode = True
