@@ -81,7 +81,9 @@ class CalendarDatabaseBase(BaseModel):
 
 
 class CalendarDatabaseCreate(CalendarDatabaseBase):
-    pass
+    UUID: str = None
+    DatabaseName: str = None
+    Owner: str = None
 
 
 class CalendarDatabaseDelete(CalendarDatabaseBase):
