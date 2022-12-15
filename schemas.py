@@ -107,6 +107,8 @@ class ScheduleCreate(ScheduleBase):
     Owner: str
     CalendarDatabase: str
     Starts: datetime.datetime
+    Ends: datetime.datetime = None
+    AllDay: bool
 
 
 class ScheduleDelete(ScheduleBase):

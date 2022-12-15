@@ -37,6 +37,7 @@ class Schedule(Base):
     CalendarDatabase = Column(String, ForeignKey("CalendarDatabase.UUID"))
     Starts = Column(DateTime)
     Ends = Column(DateTime)
+    AllDay = Column(Boolean)
 
     Detail = relationship("Detail")
 
